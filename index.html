@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minimal Finance</title>
+    <style>
+        :root {
+            --bg-color: #f5f5f7;
+            --card-bg: #ffffff;
+            --primary: #000000;
+            --accent: #007AFF;
+            --text-main: #1d1d1f;
+            --text-secondary: #86868b;
+            --success: #34c759;
+            --danger: #ff3b30;
+            --radius: 20px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: #e0e0e0;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: var(--text-main);
+        }
+
+        /* Mobile App Container */
+        #app-container {
+            width: 100%;
+            max-width: 400px;
+            height: 850px;
+            background-color: var(--bg-color);
+            border-radius: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            overflow-y: auto;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Hide Scrollbar */
+        #app-container::-webkit-scrollbar { display: none; }
+        #app-container { -ms-overflow-style: none; scrollbar-width: none; }
+
+        header {
+            padding: 40px 24px 20px;
+            background: var(--bg-color);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        h1 { font-size: 28px; margin: 0; font-weight: 700; letter-spacing: -0.5px; }
+        h2 { font-size: 20px; margin: 0 0 15px 0; font-weight: 600; }
+        p { color: var(--text-secondary); font-size: 14px; margin: 5px 0 20px; }
+
+        /* Views */
+        .view { display: none; padding: 0 24px 40px; animation: fadeIn 0.4s ease; }
+        .view.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Cards & Buttons */
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            transition: transform 0.2s;
+        }
+        
+        .card:active { transform: scale(0.98); }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 16px;
+            width: 100%;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-secondary { background: #e5e5ea; color: var(--text-main); }
+
+        /* Inputs */
+        select, input[type="file"] {
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 15px;
+            border: 1px solid #d2d2d7;
+            border-radius: 12px;
+            background: white;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        /* Summary List */
+        .category-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+        .category-row:last-child { border-bottom: none; }
+        .cat-name { font-weight: 500; }
+        .cat-total { font-weight: 700; }
+
+        /* Dashboard Graphs */
+        .bar-container { margin: 20px 0; }
+        .bar-label { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px; color: var(--text-secondary); }
+        .bar-bg { background: #e5e5ea; height: 10px; border-radius: 5px; overflow: hidden; }
+        .bar-fill { height: 100%; border-radius: 5px; width: 0%; transition: width 1s ease; }
+        .bg-success { background-color: var(--success); }
+        .bg-danger { background-color: var(--danger); }
+        
+        .insight-card { background: #fff8dc; border: 1px solid #ffeeba; }
+        .action-item { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 10px; font-size: 14px; }
+        .check-icon { color: var(--accent); min-width: 20px; }
+
+        /* Comparison Badges */
+        .badge { padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 600; }
+        .badge-up { background: rgba(255, 59, 48, 0.1); color: var(--danger); }
+        .badge-down { background: rgba(52, 199, 89, 0.1); color: var(--success); }
+
+        /* Upload Animation */
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    </style>
+</head>
+<body>
+
+<div id="app-container">
+    
+    <div id="home-view" class="view active">
+        <header>
+            <h1>Finance.</h1>
+            <p>Welcome back.</p>
+        </header>
+        
+        <div class="card" onclick="goToUpload()">
+            <h3>📝 Upload Statement</h3>
+            <p>Analyze your credit card PDF or CSV for the month.</p>
+        </div>
+
+        <div class="card" onclick="alert('Please upload data first to generate a dashboard.')">
+            <h3>📊 View Dashboard</h3>
+            <p>See your spending trends and insights.</p>
+        </div>
+    </div>
+
+    <div id="upload-view" class="view">
+        <header>
+            <h1>Upload.</h1>
+            <p>Select your statement details.</p>
+        </header>
+
+        <div class="card">
+            <label><strong>Select Month</strong></label>
+            <select id="month-select">
+                <option value="November">November</option>
+                <option value="October">October</option>
+                <option value="September">September</option>
+            </select>
+
+            <label><strong>Attach File(s)</strong></label>
+            <input type="file" id="file-input" multiple onchange="handleFileSelect()">
+            
+            <div id="file-list" style="margin-bottom: 20px; font-size: 13px; color: var(--accent);"></div>
+
+            <button class="btn" id="upload-btn" onclick="processUpload()">
+                <span id="btn-text">Analyze Statement</span>
+            </button>
+        </div>
+        
+        <button class="btn btn-outline" onclick="goHome()">Cancel</button>
+    </div>
+
+    <div id="summary-view" class="view">
+        <header>
+            <h1>Summary.</h1>
+            <p>Expenses for <span id="display-month">Month</span></p>
+        </header>
+
+        <div class="card">
+            <div id="category-list">
+                </div>
+            <div class="category-row" style="border-top: 2px solid #eee; margin-top: 10px; padding-top: 15px;">
+                <span class="cat-name"><strong>Total Spent</strong></span>
+                <span class="cat-total" id="grand-total">$0.00</span>
+            </div>
+        </div>
+
+        <div class="card" id="add-more-card">
+            <p>Do you have another statement for this month?</p>
+            <button class="btn btn-secondary" onclick="addMoreFiles()">+ Add Another File</button>
+        </div>
+
+        <button class="btn" onclick="goToDashboard()">Continue to Analytics &rarr;</button>
+    </div>
+
+    <div id="dashboard-view" class="view">
+        <header>
+            <h1>Insights.</h1>
+            <p>Vs. Previous Month</p>
+        </header>
+
+        <div class="card" style="text-align: center;">
+            <h2 id="verdict-title">...</h2>
+            <h1 id="verdict-amount" style="font-size: 36px; margin-bottom: 10px;">...</h1>
+            
+            <div class="bar-container">
+                <div class="bar-label">
+                    <span>Previous</span>
+                    <span>Current</span>
+                </div>
+                <div style="display: flex; height: 20px; border-radius: 10px; overflow: hidden;">
+                    <div id="prev-bar" style="background: #e0e0e0; width: 50%;"></div>
+                    <div id="curr-bar" style="background: var(--primary); width: 50%;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Spending Changes</h2>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div>
+                    <p style="font-size: 12px; font-weight: bold; color: var(--danger);">SPENDING MORE 📈</p>
+                    <div id="top-more"></div>
+                </div>
+                <div>
+                    <p style="font-size: 12px; font-weight: bold; color: var(--success);">SPENDING LESS 📉</p>
+                    <div id="top-less"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card insight-card">
+            <h2>💡 Action Items</h2>
+            <div id="action-items"></div>
+        </div>
+
+        <button class="btn btn-outline" onclick="goHome()">Start Over</button>
+    </div>
+
+</div>
+
+<script>
+    // --- MOCK DATA LOGIC ---
+    // Since we cannot parse real PDFs client-side easily in this demo,
+    // we define the categories and simulate the parsing result.
+    
+    const categories = [
+        "Dine out", "Coffee", "Grab", "Grocery", "Leisure", "Online Shopping", "Subscriptions"
+    ];
+
+    // Historical data (Previous Month) - Hardcoded for comparison
+    const previousMonthData = {
+        "Dine out": 450,
+        "Coffee": 120,
+        "Grab": 200,
+        "Grocery": 300,
+        "Leisure": 150,
+        "Online Shopping": 250,
+        "Subscriptions": 45,
+    };
+
+    let currentMonthData = {};
+    let currentMonthName = "";
+
+    // --- NAVIGATION ---
+    function switchView(viewId) {
+        document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+        document.getElementById(viewId).classList.add('active');
+        document.getElementById('app-container').scrollTop = 0;
+    }
+
+    function goHome() { switchView('home-view'); }
+    function goToUpload() { switchView('upload-view'); }
+
+    // --- UPLOAD LOGIC ---
+    function handleFileSelect() {
+        const input = document.getElementById('file-input');
+        const list = document.getElementById('file-list');
+        list.innerHTML = "";
+        if (input.files.length > 0) {
+            for(let i=0; i<input.files.length; i++) {
+                list.innerHTML += `<div>📄 ${input.files[i].name}</div>`;
+            }
+        }
+    }
+
+    function processUpload() {
+        const btn = document.getElementById('upload-btn');
+        const btnText = document.getElementById('btn-text');
+        const monthSelect = document.getElementById('month-select');
+        
+        if(document.getElementById('file-input').files.length === 0) {
+            alert("Please select a file first.");
+            return;
+        }
+
+        currentMonthName = monthSelect.value;
+        
+        // UI Loading State
+        btnText.innerHTML = "";
+        const spinner = document.createElement('div');
+        spinner.className = 'spinner';
+        btn.appendChild(spinner);
+
+        // Simulate Processing Delay (Parsing Logic would go here)
+        setTimeout(() => {
+            generateCurrentData(); // Simulating the parsing of the file
+            renderSummary();
+            switchView('summary-view');
+            
+            // Reset Button
+            btn.removeChild(spinner);
+            btnText.innerHTML = "Analyze Statement";
+        }, 1500);
+    }
+
+    function addMoreFiles() {
+        // In a real app, this would keep the current data and append new data
+        // For this demo, we just send them back to upload screen
+        alert("Upload additional files. We will merge them with existing data.");
+        switchView('upload-view');
+    }
+
+    // --- ANALYSIS LOGIC (Simulated) ---
+    function generateCurrentData() {
+        // This function simulates the result of the keyword categorization
+        // e.g., Finding "Starbucks" -> Coffee
+        // We will randomize it slightly so the user sees different results
+        
+        categories.forEach(cat => {
+            // Randomize based on previous month to create realistic variance (+- 40%)
+            const variance = (Math.random() * 0.8) + 0.6; 
+            currentMonthData[cat] = Math.floor(previousMonthData[cat] * variance);
+        });
+        
+        // Let's force Coffee to be higher for the demo insights
+        currentMonthData["Coffee"] = previousMonthData["Coffee"] * 1.5;
+    }
+
+    function renderSummary() {
+        document.getElementById('display-month').innerText = currentMonthName;
+        const container = document.getElementById('category-list');
+        container.innerHTML = "";
+        
+        let total = 0;
+
+        for (const [category, amount] of Object.entries(currentMonthData)) {
+            total += amount;
+            container.innerHTML += `
+                <div class="category-row">
+                    <span class="cat-name">${category}</span>
+                    <span class="cat-total">$${amount}</span>
+                </div>
+            `;
+        }
+        document.getElementById('grand-total').innerText = "$" + total.toLocaleString();
+    }
+
+    function goToDashboard() {
+        renderAnalytics();
+        switchView('dashboard-view');
+    }
+
+    // --- ANALYTICS LOGIC ---
+    function renderAnalytics() {
+        let prevTotal = Object.values(previousMonthData).reduce((a, b) => a + b, 0);
+        let currTotal = Object.values(currentMonthData).reduce((a, b) => a + b, 0);
+
+        // 1. Verdict (Horizontal Graph)
+        const diff = prevTotal - currTotal;
+        const verdictTitle = document.getElementById('verdict-title');
+        const verdictAmount = document.getElementById('verdict-amount');
+        const prevBar = document.getElementById('prev-bar');
+        const currBar = document.getElementById('curr-bar');
+
+        if (diff > 0) {
+            verdictTitle.innerText = "You Saved";
+            verdictTitle.style.color = "var(--success)";
+            verdictAmount.innerText = "$" + Math.abs(diff).toLocaleString();
+        } else {
+            verdictTitle.innerText = "Spending Increase";
+            verdictTitle.style.color = "var(--danger)";
+            verdictAmount.innerText = "+$" + Math.abs(diff).toLocaleString();
+        }
+
+        // Normalize bars
+        const max = Math.max(prevTotal, currTotal);
+        prevBar.style.width = (prevTotal / max * 100) + "%";
+        currBar.style.width = (currTotal / max * 100) + "%";
+
+        // 2. Top 3 More/Less
+        let changes = [];
+        for (const cat of categories) {
+            changes.push({
+                name: cat,
+                diff: currentMonthData[cat] - previousMonthData[cat],
+                curr: currentMonthData[cat]
+            });
+        }
+
+        // Sort by biggest increase
+        changes.sort((a, b) => b.diff - a.diff);
+
+        const topMoreDiv = document.getElementById('top-more');
+        const topLessDiv = document.getElementById('top-less');
+        topMoreDiv.innerHTML = "";
+        topLessDiv.innerHTML = "";
+
+        // Render Top 3 Increases
+        changes.slice(0, 3).forEach(item => {
+            if(item.diff > 0) {
+                topMoreDiv.innerHTML += `
+                    <div style="margin-bottom:8px; font-size:13px;">
+                        ${item.name} <span class="badge badge-up">+$${Math.floor(item.diff)}</span>
+                    </div>`;
+            }
+        });
+
+        // Render Top 3 Decreases (bottom of the list)
+        changes.filter(i => i.diff < 0).sort((a, b) => a.diff - b.diff).slice(0, 3).forEach(item => {
+             topLessDiv.innerHTML += `
+                <div style="margin-bottom:8px; font-size:13px;">
+                    ${item.name} <span class="badge badge-down">-$${Math.abs(Math.floor(item.diff))}</span>
+                </div>`;
+        });
+
+        // 3. Insights / Action Items
+        const actionsDiv = document.getElementById('action-items');
+        actionsDiv.innerHTML = "";
+
+        const createAction = (text) => {
+            return `<div class="action-item"><span class="check-icon">✓</span><span>${text}</span></div>`;
+        };
+
+        if (changes[0].name === "Coffee" && changes[0].diff > 0) {
+            actionsDiv.innerHTML += createAction("Coffee spending is up. Consider a coffee subscription or brewing at home 2 days a week.");
+        }
+        if (changes[0].name === "Dine out" && changes[0].diff > 0) {
+            actionsDiv.innerHTML += createAction("Dining out spiked. Try setting a strict weekend-only rule for restaurants.");
+        }
+        if (currentMonthData["Subscriptions"] > previousMonthData["Subscriptions"]) {
+            actionsDiv.innerHTML += createAction("Subscription costs rose. Check for forgotten free trials that expired.");
+        }
+        if (diff > 0) {
+            actionsDiv.innerHTML += createAction("Great job saving! Transfer the $" + Math.floor(diff) + " saved to your emergency fund immediately.");
+        } else {
+            actionsDiv.innerHTML += createAction("Total spending increased. Review your largest category (" + changes[0].name + ") and set a limit for next month.");
+        }
+    }
+
+</script>
+
+</body>
+</html>
