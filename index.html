@@ -2,38 +2,33 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minimalist CC Tracker</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Our Finances</title>
     
-    <!-- React & ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     
-    <!-- Babel for JSX -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     
-    <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <!-- Custom Config for Tailwind -->
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
                         brand: {
-                            dark: '#1e293b',
-                            light: '#f1f5f9',
-                            accent: '#3b82f6',
-                            success: '#10b981',
-                            danger: '#ef4444',
+                            dark: '#2C3E50',       /* Deep Blue */
+                            primary: '#3498DB',    /* Trust Blue */
+                            accent: '#E67E22',     /* Warm Orange */
+                            light: '#F5F7FA',      /* Soft Gray */
+                            surface: '#FFFFFF'
                         }
                     },
                     fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
+                        sans: ['Inter', '-apple-system', 'sans-serif'],
                     }
                 }
             }
@@ -41,32 +36,18 @@
     </script>
 
     <style>
-        body {
-            background-color: #f8fafc;
-            font-family: 'Inter', sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
-        /* Hide scrollbar for clean app look */
-        ::-webkit-scrollbar {
-            width: 0px;
-            background: transparent;
-        }
+        body { background-color: #F5F7FA; -webkit-tap-highlight-color: transparent; }
+        ::-webkit-scrollbar { width: 0px; background: transparent; }
         .app-container {
-            max-width: 480px; /* Mobile width */
-            margin: 0 auto;
-            min-height: 100vh;
-            background: white;
-            box-shadow: 0 0 20px rgba(0,0,0,0.05);
-            position: relative;
-            overflow-x: hidden;
+            max-width: 480px; margin: 0 auto; min-height: 100vh;
+            background: #F5F7FA; position: relative; overflow-x: hidden;
+            box-shadow: 0 0 30px rgba(0,0,0,0.05);
         }
-        .fade-in {
-            animation: fadeIn 0.3s ease-in-out;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* Card Gradients */
+        .gradient-card { background: linear-gradient(135deg, #2C3E50 0%, #34495E 100%); }
     </style>
 </head>
 <body>
@@ -74,450 +55,192 @@
     <div id="root"></div>
 
     <script type="text/babel">
-        const { useState, useEffect, useMemo } = React;
+        const { useState, useEffect } = React;
 
-        // --- Mock Data Generators & Logic ---
-        
-        const CATEGORIES = {
-            DINEOUT: { id: 'dineout', label: 'Dine Out', icon: 'fa-utensils', color: 'bg-orange-100 text-orange-600' },
-            COFFEE: { id: 'coffee', label: 'Coffee', icon: 'fa-mug-hot', color: 'bg-brown-100 text-amber-700' },
-            GRAB: { id: 'grab', label: 'Grab/Transport', icon: 'fa-car', color: 'bg-green-100 text-green-600' },
-            GROCERY: { id: 'grocery', label: 'Grocery', icon: 'fa-basket-shopping', color: 'bg-yellow-100 text-yellow-600' },
-            LEISURE: { id: 'leisure', label: 'Leisure', icon: 'fa-ticket', color: 'bg-purple-100 text-purple-600' },
-            ONLINE: { id: 'online', label: 'Online Shopping', icon: 'fa-bag-shopping', color: 'bg-blue-100 text-blue-600' },
-            SUBS: { id: 'subs', label: 'Subscriptions', icon: 'fa-rotate', color: 'bg-red-100 text-red-600' },
-        };
-
-        const KEYWORDS = {
-            [CATEGORIES.COFFEE.id]: ['Starbucks', 'Coffee Bean', 'Tomoro Coffee', 'Zus Coffee', 'Arabica', 'Tim Hortons'],
-            [CATEGORIES.DINEOUT.id]: ['McDonalds', 'Jollibee', 'Ramen Nagi', 'KFC', 'Din Tai Fung', 'Shake Shack'],
-            [CATEGORIES.GRAB.id]: ['Grab * Ride', 'Grab * Food', 'Uber', 'Angkas'],
-            [CATEGORIES.GROCERY.id]: ['SM Supermarket', 'Puregold', 'Landers', 'S&R', 'Rustans Fresh', '7-Eleven'],
-            [CATEGORIES.LEISURE.id]: ['SM Cinema', 'Ayala Malls', 'Timezone', 'Ticketnet', 'Steam Games'],
-            [CATEGORIES.ONLINE.id]: ['Lazada', 'Shopee', 'Zalora', 'Amazon', 'Shein', 'Tiktok Shop'],
-            [CATEGORIES.SUBS.id]: ['Netflix', 'Spotify', 'Apple Services', 'Google Storage', 'Disney+', 'Youtube Premium']
-        };
-
-        // Helper to generate random expense data for a month
-        const generateMockExpenses = (monthOffset = 0) => {
-            const data = {};
-            // Initialize 0
-            Object.keys(CATEGORIES).forEach(key => data[CATEGORIES[key].id] = 0);
+        // --- USER CONFIGURATION (PASTE LINKS HERE) ---
+        const CONFIG = {
+            // Step 1: Your Google Drive Folder Link (Where you drop PDFs)
+            DRIVE_LINK: "PASTE_YOUR_GOOGLE_DRIVE_FOLDER_LINK_HERE", 
             
-            // Randomly populate
-            const baseAmount = 5000; 
-            
-            Object.keys(CATEGORIES).forEach(key => {
-                const catId = CATEGORIES[key].id;
-                // Add some randomness + trend difference based on offset
-                // Current month (0) vs Previous (-1)
-                let amount = Math.floor(Math.random() * 5000) + 500;
-                
-                // Hardcode some trends for the demo
-                if (catId === 'online' && monthOffset === 0) amount += 4000; // Spent more on online shopping this month
-                if (catId === 'grocery' && monthOffset === 0) amount -= 1000; // Spent less on grocery
-                
-                data[catId] = amount;
-            });
-            return data;
+            // Step 2: Your Google Sheet CSV Link (File > Share > Publish to Web > CSV)
+            SHEET_LINK: "https://docs.google.com/spreadsheets/d/e/2PACX-1vTsQy8m6lQ6Ac0vsxe2DMwEFwqc2yfbnOiU_2kGdMlLp8jit-YIbQ620lZtR8RH_UkQ0tn-yddRgFI0/pub?gid=1027697624&single=true&output=csv" 
         };
 
         // --- Components ---
 
         const Button = ({ children, onClick, variant = 'primary', className = '' }) => {
-            const baseStyle = "w-full py-4 rounded-2xl font-semibold transition-all duration-200 active:scale-95 flex items-center justify-center gap-2";
+            const base = "w-full py-4 rounded-2xl font-bold transition-transform active:scale-95 flex items-center justify-center gap-2 text-sm uppercase tracking-wide";
             const variants = {
-                primary: "bg-brand-dark text-white shadow-lg shadow-slate-300",
-                secondary: "bg-white text-slate-700 border border-slate-200 shadow-sm",
-                outline: "border-2 border-dashed border-slate-300 text-slate-400 hover:border-slate-400 hover:text-slate-600"
+                primary: "bg-brand-dark text-white shadow-lg shadow-blue-900/20",
+                secondary: "bg-white text-brand-dark border border-slate-200 shadow-sm",
+                accent: "bg-brand-accent text-white shadow-lg shadow-orange-500/20"
             };
-            return (
-                <button onClick={onClick} className={`${baseStyle} ${variants[variant]} ${className}`}>
-                    {children}
-                </button>
-            );
+            return <button onClick={onClick} className={`${base} ${variants[variant]} ${className}`}>{children}</button>;
         };
 
         const Card = ({ children, className = '' }) => (
-            <div className={`bg-white p-6 rounded-3xl shadow-sm border border-slate-100 ${className}`}>
+            <div className={`bg-white p-6 rounded-3xl shadow-[0_10px_30px_rgba(0,0,0,0.03)] border border-slate-100 ${className}`}>
                 {children}
             </div>
         );
 
         // --- Screens ---
 
-        const HomeScreen = ({ onNavigate }) => (
+        const HomeScreen = ({ onNavigate, data, loading }) => (
             <div className="h-screen flex flex-col justify-between p-8 fade-in relative">
-                <div className="mt-12">
-                    <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center mb-6">
-                        <i className="fa-solid fa-wallet text-white text-xl"></i>
+                <div className="mt-8">
+                    <div className="flex justify-between items-center mb-8">
+                        <div>
+                            <p className="text-xs font-bold text-slate-400 tracking-widest uppercase mb-1">HELLO, US</p>
+                            <h1 className="text-3xl font-extrabold text-brand-dark">Finance Tracker</h1>
+                        </div>
+                        <div className="w-10 h-10 rounded-full bg-brand-primary/10 flex items-center justify-center text-brand-primary">
+                            <i className="fa-solid fa-user-group"></i>
+                        </div>
                     </div>
-                    <h1 className="text-4xl font-bold text-slate-800 mb-2">My Tracker</h1>
-                    <p className="text-slate-500">Minimalist expense insights.</p>
+
+                    {/* Quick Stat Card */}
+                    <div className="gradient-card p-6 rounded-3xl text-white shadow-xl shadow-blue-900/10 mb-8 relative overflow-hidden">
+                        <div className="relative z-10">
+                            <p className="text-blue-200 text-xs font-bold uppercase tracking-wider mb-2">This Month's Verdict</p>
+                            {loading ? (
+                                <p className="animate-pulse opacity-70">Syncing...</p>
+                            ) : (
+                                <>
+                                    <h2 className="text-3xl font-bold mb-1">{data?.verdict || "No Data Yet"}</h2>
+                                    <p className="text-2xl opacity-90">{data?.total ? `$${data.total}` : "$0.00"}</p>
+                                </>
+                            )}
+                        </div>
+                        {/* Decorative Circle */}
+                        <div className="absolute -right-6 -bottom-10 w-32 h-32 bg-white opacity-10 rounded-full"></div>
+                    </div>
+
+                    {/* Action Items Preview */}
+                    {data?.actions && data.actions.length > 0 && (
+                        <div className="space-y-3">
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">AI Insights</p>
+                            {data.actions.slice(0, 2).map((action, i) => (
+                                <div key={i} className="bg-white p-4 rounded-2xl border border-slate-100 text-sm text-slate-600 flex gap-3 shadow-sm">
+                                    <i className="fa-solid fa-lightbulb text-brand-accent mt-1"></i>
+                                    {action}
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
-                <div className="space-y-4 mb-8">
-                    <Button onClick={() => onNavigate('upload')}>
+                <div className="space-y-3 mb-6">
+                    <Button variant="accent" onClick={() => window.open(CONFIG.DRIVE_LINK, '_blank')}>
                         <i className="fa-solid fa-cloud-arrow-up"></i> Upload Statement
                     </Button>
                     <Button variant="secondary" onClick={() => onNavigate('dashboard')}>
-                        <i className="fa-solid fa-chart-pie"></i> View Dashboard
+                        View Full Analysis
                     </Button>
                 </div>
             </div>
         );
 
-        const UploadScreen = ({ onProcess, onBack }) => {
-            const [step, setStep] = useState(1); // 1: Month, 2: File, 3: More?
-            const [month, setMonth] = useState('');
-            const [files, setFiles] = useState([]);
-            const [isAnalyzing, setIsAnalyzing] = useState(false);
+        const DashboardScreen = ({ data, onBack }) => {
+            if (!data) return <div className="p-8 text-center text-slate-400">Loading Data...</div>;
 
-            const handleFileChange = (e) => {
-                if (e.target.files.length > 0) {
-                    setFiles([...files, ...Array.from(e.target.files)]);
-                    setStep(3); // Ask if more
-                }
-            };
-
-            const handleAnalyze = () => {
-                setIsAnalyzing(true);
-                // Simulate processing delay
-                setTimeout(() => {
-                    setIsAnalyzing(false);
-                    onProcess(month);
-                }, 2000);
-            };
-
-            if (isAnalyzing) {
-                return (
-                    <div className="h-screen flex flex-col items-center justify-center p-8 fade-in text-center">
-                        <i className="fa-solid fa-circle-notch fa-spin text-4xl text-brand-dark mb-4"></i>
-                        <h2 className="text-xl font-bold text-slate-800">Analyzing Statement</h2>
-                        <p className="text-slate-500 mt-2">Categorizing transactions based on merchants...</p>
-                        <div className="mt-8 space-y-2 text-sm text-slate-400">
-                            <p>Found "Starbucks"... <span className="text-green-500">Coffee</span></p>
-                            <p>Found "Lazada"... <span className="text-green-500">Online Shopping</span></p>
-                            <p>Found "Grab"... <span className="text-green-500">Transport</span></p>
-                        </div>
-                    </div>
-                );
-            }
+            const isSaved = data.verdict?.toLowerCase().includes("save");
 
             return (
-                <div className="h-screen flex flex-col p-6 fade-in">
+                <div className="min-h-screen p-6 fade-in pb-10">
                     <div className="flex items-center mb-8">
-                        <button onClick={onBack} className="p-2 -ml-2 text-slate-400 hover:text-slate-800">
+                        <button onClick={onBack} className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-slate-400 shadow-sm border border-slate-100">
                             <i className="fa-solid fa-arrow-left"></i>
                         </button>
-                        <h2 className="text-xl font-bold ml-2">Upload Statement</h2>
+                        <h2 className="text-xl font-bold ml-4 text-brand-dark">Dashboard</h2>
                     </div>
 
-                    {step === 1 && (
-                        <div className="flex-1 flex flex-col justify-center">
-                            <label className="text-slate-500 font-medium mb-2 block">Select Month</label>
-                            <input 
-                                type="month" 
-                                className="w-full p-4 bg-slate-50 rounded-2xl border-none outline-none font-bold text-lg text-slate-700"
-                                onChange={(e) => {
-                                    setMonth(e.target.value);
-                                    if(e.target.value) setStep(2);
-                                }}
-                            />
-                        </div>
-                    )}
-
-                    {(step === 2 || step === 3) && (
-                        <div className="flex-1 flex flex-col">
-                            <div className="mb-6">
-                                <h3 className="text-lg font-bold text-slate-800 mb-1">
-                                    {month ? new Date(month).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'Selected Month'}
-                                </h3>
-                                <p className="text-slate-400 text-sm">Upload PDF or CSV statements.</p>
-                            </div>
-
-                            <div className="relative mb-6">
-                                <input 
-                                    type="file" 
-                                    multiple
-                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                                    onChange={handleFileChange}
-                                />
-                                <div className="w-full h-40 border-2 border-dashed border-slate-300 rounded-3xl flex flex-col items-center justify-center text-slate-400 bg-slate-50">
-                                    <i className="fa-solid fa-cloud-arrow-up text-3xl mb-3"></i>
-                                    <span className="font-medium">Tap to Upload</span>
-                                </div>
-                            </div>
-
-                            {files.length > 0 && (
-                                <div className="mb-8 space-y-2">
-                                    <p className="text-sm font-bold text-slate-700">Uploaded Files ({files.length})</p>
-                                    {files.map((f, i) => (
-                                        <div key={i} className="flex items-center justify-between bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center">
-                                                    <i className="fa-solid fa-file-invoice"></i>
-                                                </div>
-                                                <span className="text-sm font-medium text-slate-600 truncate max-w-[150px]">{f.name}</span>
-                                            </div>
-                                            <i className="fa-solid fa-check text-green-500"></i>
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
-
-                            <div className="mt-auto space-y-3">
-                                {files.length > 0 && (
-                                    <>
-                                        <Button variant="secondary" onClick={() => document.querySelector('input[type="file"]').click()}>
-                                            <i className="fa-solid fa-plus"></i> Add Another File
-                                        </Button>
-                                        <Button onClick={handleAnalyze}>
-                                            Analyze Statements
-                                        </Button>
-                                    </>
-                                )}
-                            </div>
-                        </div>
-                    )}
-                </div>
-            );
-        };
-
-        const CategoryResult = ({ onContinue, currentData }) => {
-            const total = Object.values(currentData).reduce((a, b) => a + b, 0);
-
-            return (
-                <div className="min-h-screen bg-slate-50 p-6 fade-in pb-24">
-                     <div className="flex items-center justify-between mb-8">
-                         <h2 className="text-2xl font-bold text-slate-800">Summary</h2>
-                         <span className="bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full">Processed</span>
-                    </div>
-
-                    <Card className="mb-6 flex flex-col items-center py-8">
-                        <p className="text-slate-400 font-medium text-sm uppercase tracking-wider mb-2">Total Spend</p>
-                        <h1 className="text-4xl font-bold text-slate-800">₱{total.toLocaleString()}</h1>
+                    <Card className="mb-6 text-center py-8">
+                        <p className="text-slate-400 text-xs font-bold uppercase tracking-wider mb-2">TOTAL SPENT</p>
+                        <h1 className="text-5xl font-extrabold text-brand-dark mb-4">{data.total ? `$${data.total}` : "$0"}</h1>
+                        <span className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wide ${isSaved ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                            {data.verdict || "Pending"}
+                        </span>
                     </Card>
 
-                    <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wide mb-4">Categorized Expenses</h3>
-                    
-                    <div className="space-y-3">
-                        {Object.values(CATEGORIES).map((cat) => {
-                            const amount = currentData[cat.id] || 0;
-                            return (
-                                <div key={cat.id} className="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-                                    <div className="flex items-center gap-4">
-                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${cat.color}`}>
-                                            <i className={`fa-solid ${cat.icon}`}></i>
-                                        </div>
-                                        <div>
-                                            <p className="font-bold text-slate-700">{cat.label}</p>
-                                            <p className="text-xs text-slate-400">
-                                                {KEYWORDS[cat.id].slice(0,2).join(', ')}...
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <span className="font-bold text-slate-800">₱{amount.toLocaleString()}</span>
+                    <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wide mb-4 ml-1">Action Plan</h3>
+                    <div className="space-y-4">
+                        {data.actions.map((action, i) => (
+                            <div key={i} className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100 flex gap-4">
+                                <div className="w-6 h-6 rounded-full bg-brand-primary/10 flex-shrink-0 flex items-center justify-center text-brand-primary text-xs font-bold">
+                                    {i + 1}
                                 </div>
-                            );
-                        })}
-                    </div>
-
-                    <div className="fixed bottom-6 left-6 right-6 max-w-[432px] mx-auto">
-                        <Button onClick={onContinue}>
-                            Go to Dashboard <i className="fa-solid fa-arrow-right"></i>
-                        </Button>
-                    </div>
-                </div>
-            );
-        };
-
-        const Dashboard = ({ currentData, prevData, onBack }) => {
-            // Calculations
-            const currentTotal = Object.values(currentData).reduce((a, b) => a + b, 0);
-            const prevTotal = Object.values(prevData).reduce((a, b) => a + b, 0);
-            const diffTotal = currentTotal - prevTotal;
-            const isSaving = diffTotal < 0;
-
-            // Prepare comparisons for Top 3
-            const comparisons = Object.keys(CATEGORIES).map(key => {
-                const catId = CATEGORIES[key].id;
-                const curr = currentData[catId];
-                const prev = prevData[catId];
-                return {
-                    ...CATEGORIES[key],
-                    curr,
-                    prev,
-                    diff: curr - prev
-                };
-            });
-
-            // Top 3 Spend More (Highest Positive Diff)
-            const spendMore = [...comparisons].sort((a, b) => b.diff - a.diff).filter(i => i.diff > 0).slice(0, 3);
-            
-            // Top 3 Spend Less (Lowest Negative Diff aka Highest Saving)
-            const spendLess = [...comparisons].sort((a, b) => a.diff - b.diff).filter(i => i.diff < 0).slice(0, 3);
-
-            // Insight Logic
-            const maxCategory = comparisons.sort((a,b) => b.curr - a.curr)[0];
-
-            return (
-                <div className="min-h-screen bg-slate-50 p-6 fade-in pb-10">
-                    <div className="flex items-center mb-6">
-                        <button onClick={onBack} className="p-2 -ml-2 text-slate-400 hover:text-slate-800">
-                            <i className="fa-solid fa-house"></i>
-                        </button>
-                        <h2 className="text-xl font-bold ml-2">Dashboard</h2>
-                    </div>
-
-                    {/* Main Comparison Card */}
-                    <Card className="mb-6 relative overflow-hidden">
-                        <div className="relative z-10">
-                            <p className="text-slate-500 text-sm font-medium mb-1">Month over Month</p>
-                            <div className="flex items-baseline gap-2 mb-4">
-                                <h1 className="text-3xl font-bold text-slate-800">
-                                    {isSaving ? 'Saved ' : 'Loss '} 
-                                    <span className={isSaving ? 'text-green-500' : 'text-red-500'}>
-                                        ₱{Math.abs(diffTotal).toLocaleString()}
-                                    </span>
-                                </h1>
-                            </div>
-                            
-                            {/* Horizontal Graph */}
-                            <div className="space-y-4">
-                                <div>
-                                    <div className="flex justify-between text-xs font-semibold text-slate-400 mb-1">
-                                        <span>Last Month</span>
-                                        <span>₱{prevTotal.toLocaleString()}</span>
-                                    </div>
-                                    <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
-                                        <div className="h-full bg-slate-300 rounded-full" style={{width: '100%'}}></div>
-                                    </div>
-                                </div>
-                                <div>
-                                    <div className="flex justify-between text-xs font-semibold text-slate-400 mb-1">
-                                        <span>This Month</span>
-                                        <span>₱{currentTotal.toLocaleString()}</span>
-                                    </div>
-                                    <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
-                                        {/* Simple relative width calculation for demo visual */}
-                                        <div 
-                                            className={`h-full rounded-full ${isSaving ? 'bg-green-500' : 'bg-red-500'}`} 
-                                            style={{width: `${Math.min((currentTotal / prevTotal) * 100, 100)}%`}}
-                                        ></div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </Card>
-
-                    {/* Insights Section */}
-                    <div className="bg-blue-50 border border-blue-100 p-4 rounded-2xl mb-6 flex gap-4 items-start">
-                        <div className="bg-white p-2 rounded-full text-blue-500 mt-1 shadow-sm">
-                            <i className="fa-solid fa-lightbulb"></i>
-                        </div>
-                        <div>
-                            <h4 className="font-bold text-blue-900 text-sm mb-1">Smart Insight</h4>
-                            <p className="text-blue-800 text-xs leading-relaxed">
-                                Your highest spend is <b>{maxCategory.label}</b>. 
-                                {maxCategory.diff > 0 
-                                    ? ` It increased by ₱${maxCategory.diff.toLocaleString()} compared to last month. Consider setting a limit.` 
-                                    : ` Good job! You maintained this category well.`}
-                            </p>
-                        </div>
-                    </div>
-
-                    {/* Top 3 Spending More */}
-                    <h3 className="font-bold text-slate-800 mb-3 text-sm">Spending Increased <span className="text-red-500 ml-1">▲</span></h3>
-                    <div className="space-y-3 mb-6">
-                        {spendMore.length === 0 && <p className="text-sm text-slate-400 italic">No spending increases. Great job!</p>}
-                        {spendMore.map(cat => (
-                            <div key={cat.id} className="bg-white p-4 rounded-2xl flex items-center justify-between border-l-4 border-red-400 shadow-sm">
-                                <div className="flex items-center gap-3">
-                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center bg-slate-50 text-slate-500`}>
-                                        <i className={`fa-solid ${cat.icon}`}></i>
-                                    </div>
-                                    <div>
-                                        <p className="font-bold text-slate-700 text-sm">{cat.label}</p>
-                                        <p className="text-xs text-slate-400">Total: ₱{cat.curr.toLocaleString()}</p>
-                                    </div>
-                                </div>
-                                <div className="text-right">
-                                    <p className="font-bold text-red-500 text-sm">+₱{cat.diff.toLocaleString()}</p>
-                                </div>
+                                <p className="text-slate-600 text-sm leading-relaxed">{action}</p>
                             </div>
                         ))}
                     </div>
 
-                    {/* Top 3 Spending Less */}
-                    <h3 className="font-bold text-slate-800 mb-3 text-sm">Spending Decreased <span className="text-green-500 ml-1">▼</span></h3>
-                    <div className="space-y-3 mb-8">
-                        {spendLess.length === 0 && <p className="text-sm text-slate-400 italic">No decreases yet.</p>}
-                        {spendLess.map(cat => (
-                            <div key={cat.id} className="bg-white p-4 rounded-2xl flex items-center justify-between border-l-4 border-green-400 shadow-sm">
-                                <div className="flex items-center gap-3">
-                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center bg-slate-50 text-slate-500`}>
-                                        <i className={`fa-solid ${cat.icon}`}></i>
-                                    </div>
-                                    <div>
-                                        <p className="font-bold text-slate-700 text-sm">{cat.label}</p>
-                                        <p className="text-xs text-slate-400">Total: ₱{cat.curr.toLocaleString()}</p>
-                                    </div>
-                                </div>
-                                <div className="text-right">
-                                    <p className="font-bold text-green-500 text-sm">-₱{Math.abs(cat.diff).toLocaleString()}</p>
-                                </div>
-                            </div>
-                        ))}
+                    <div className="mt-8 text-center">
+                        <p className="text-xs text-slate-400">Data sourced from Shared Drive</p>
                     </div>
                 </div>
             );
         };
 
-        // --- Main App Controller ---
+        // --- Main Controller ---
 
         const App = () => {
-            const [view, setView] = useState('home'); // home, upload, summary, dashboard
-            const [currentData, setCurrentData] = useState(null);
-            const [prevData, setPrevData] = useState(null);
+            const [view, setView] = useState('home');
+            const [data, setData] = useState(null);
+            const [loading, setLoading] = useState(true);
 
-            // Initialize mock data for previous month on load
+            // Fetch Real Data from Google Sheets
             useEffect(() => {
-                setPrevData(generateMockExpenses(-1));
-            }, []);
+                const fetchSheet = async () => {
+                    if (CONFIG.SHEET_LINK.includes("PASTE_YOUR")) {
+                        // Use Demo Data if user hasn't setup links yet
+                        setTimeout(() => {
+                            setData({
+                                month: "Demo Month",
+                                total: "2,450",
+                                verdict: "Saved $300",
+                                actions: [
+                                    "Coffee spending is down 10%. Keep using the home machine.",
+                                    "Grocery bill spiked. Check the bulk buy at S&R.",
+                                    "Cancel the unused generic streaming subscription."
+                                ]
+                            });
+                            setLoading(false);
+                        }, 1000);
+                        return;
+                    }
 
-            const handleProcess = (month) => {
-                // Generate current month data (Simulating the parsing result)
-                const newData = generateMockExpenses(0); 
-                setCurrentData(newData);
-                setView('summary');
-            };
+                    try {
+                        const response = await fetch(CONFIG.SHEET_LINK);
+                        const csvText = await response.text();
+                        
+                        // Parse CSV (Simple Version)
+                        const rows = csvText.split('\n').slice(1); // Remove header
+                        const lastRow = rows[rows.length - 1]?.split(',') || [];
+                        
+                        // Assuming CSV columns: Month, Total, Verdict, Action1, Action2, Action3
+                        if (lastRow.length > 1) {
+                            setData({
+                                month: lastRow[0],
+                                total: lastRow[1],
+                                verdict: lastRow[2],
+                                actions: [lastRow[3], lastRow[4], lastRow[5]].filter(Boolean)
+                            });
+                        }
+                        setLoading(false);
+                    } catch (e) {
+                        console.error("Fetch Error", e);
+                        setLoading(false);
+                    }
+                };
+                
+                fetchSheet();
+            }, []);
 
             return (
                 <div className="app-container">
-                    {view === 'home' && <HomeScreen onNavigate={setView} />}
-                    
-                    {view === 'upload' && (
-                        <UploadScreen 
-                            onBack={() => setView('home')} 
-                            onProcess={handleProcess} 
-                        />
-                    )}
-
-                    {view === 'summary' && currentData && (
-                        <CategoryResult 
-                            currentData={currentData} 
-                            onContinue={() => setView('dashboard')} 
-                        />
-                    )}
-
-                    {view === 'dashboard' && currentData && prevData && (
-                        <Dashboard 
-                            currentData={currentData} 
-                            prevData={prevData} 
-                            onBack={() => setView('home')} 
-                        />
-                    )}
+                    {view === 'home' && <HomeScreen onNavigate={setView} data={data} loading={loading} />}
+                    {view === 'dashboard' && <DashboardScreen data={data} onBack={() => setView('home')} />}
                 </div>
             );
         };
