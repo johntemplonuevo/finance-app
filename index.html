@@ -3,487 +3,527 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Minimal Finance</title>
+    <title>Minimalist CC Tracker</title>
+    
+    <!-- React & ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Custom Config for Tailwind -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            dark: '#1e293b',
+                            light: '#f1f5f9',
+                            accent: '#3b82f6',
+                            success: '#10b981',
+                            danger: '#ef4444',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
     <style>
-        :root {
-            --bg-color: #f5f5f7;
-            --card-bg: #ffffff;
-            --primary: #000000;
-            --accent: #007AFF;
-            --text-main: #1d1d1f;
-            --text-secondary: #86868b;
-            --success: #34c759;
-            --danger: #ff3b30;
-            --radius: 20px;
-        }
-
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            background-color: #e0e0e0;
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            background-color: #f8fafc;
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        /* Hide scrollbar for clean app look */
+        ::-webkit-scrollbar {
+            width: 0px;
+            background: transparent;
+        }
+        .app-container {
+            max-width: 480px; /* Mobile width */
+            margin: 0 auto;
             min-height: 100vh;
-            color: var(--text-main);
-        }
-
-        /* Mobile App Container */
-        #app-container {
-            width: 100%;
-            max-width: 400px;
-            height: 850px;
-            background-color: var(--bg-color);
-            border-radius: 40px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
-            overflow-y: auto;
+            background: white;
+            box-shadow: 0 0 20px rgba(0,0,0,0.05);
             position: relative;
-            display: flex;
-            flex-direction: column;
+            overflow-x: hidden;
         }
-
-        /* Hide Scrollbar */
-        #app-container::-webkit-scrollbar { display: none; }
-        #app-container { -ms-overflow-style: none; scrollbar-width: none; }
-
-        header {
-            padding: 40px 24px 20px;
-            background: var(--bg-color);
-            position: sticky;
-            top: 0;
-            z-index: 10;
+        .fade-in {
+            animation: fadeIn 0.3s ease-in-out;
         }
-
-        h1 { font-size: 28px; margin: 0; font-weight: 700; letter-spacing: -0.5px; }
-        h2 { font-size: 20px; margin: 0 0 15px 0; font-weight: 600; }
-        p { color: var(--text-secondary); font-size: 14px; margin: 5px 0 20px; }
-
-        /* Views */
-        .view { display: none; padding: 0 24px 40px; animation: fadeIn 0.4s ease; }
-        .view.active { display: block; }
-
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(10px); }
             to { opacity: 1; transform: translateY(0); }
         }
-
-        /* Cards & Buttons */
-        .card {
-            background: var(--card-bg);
-            border-radius: var(--radius);
-            padding: 24px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
-            transition: transform 0.2s;
-        }
-        
-        .card:active { transform: scale(0.98); }
-
-        .btn {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 16px;
-            width: 100%;
-            border-radius: 14px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            margin-bottom: 12px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .btn-outline {
-            background: transparent;
-            border: 2px solid var(--primary);
-            color: var(--primary);
-        }
-
-        .btn-secondary { background: #e5e5ea; color: var(--text-main); }
-
-        /* Inputs */
-        select, input[type="file"] {
-            width: 100%;
-            padding: 14px;
-            margin-bottom: 15px;
-            border: 1px solid #d2d2d7;
-            border-radius: 12px;
-            background: white;
-            font-size: 16px;
-            box-sizing: border-box;
-        }
-
-        /* Summary List */
-        .category-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 12px 0;
-            border-bottom: 1px solid #f0f0f0;
-        }
-        .category-row:last-child { border-bottom: none; }
-        .cat-name { font-weight: 500; }
-        .cat-total { font-weight: 700; }
-
-        /* Dashboard Graphs */
-        .bar-container { margin: 20px 0; }
-        .bar-label { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px; color: var(--text-secondary); }
-        .bar-bg { background: #e5e5ea; height: 10px; border-radius: 5px; overflow: hidden; }
-        .bar-fill { height: 100%; border-radius: 5px; width: 0%; transition: width 1s ease; }
-        .bg-success { background-color: var(--success); }
-        .bg-danger { background-color: var(--danger); }
-        
-        .insight-card { background: #fff8dc; border: 1px solid #ffeeba; }
-        .action-item { display: flex; gap: 10px; align-items: flex-start; margin-bottom: 10px; font-size: 14px; }
-        .check-icon { color: var(--accent); min-width: 20px; }
-
-        /* Comparison Badges */
-        .badge { padding: 4px 8px; border-radius: 6px; font-size: 12px; font-weight: 600; }
-        .badge-up { background: rgba(255, 59, 48, 0.1); color: var(--danger); }
-        .badge-down { background: rgba(52, 199, 89, 0.1); color: var(--success); }
-
-        /* Upload Animation */
-        .spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid var(--primary);
-            border-radius: 50%;
-            width: 20px;
-            height: 20px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
     </style>
 </head>
 <body>
 
-<div id="app-container">
-    
-    <div id="home-view" class="view active">
-        <header>
-            <h1>Finance.</h1>
-            <p>Welcome back.</p>
-        </header>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useMemo } = React;
+
+        // --- Mock Data Generators & Logic ---
         
-        <div class="card" onclick="goToUpload()">
-            <h3>📝 Upload Statement</h3>
-            <p>Analyze your credit card PDF or CSV for the month.</p>
-        </div>
-
-        <div class="card" onclick="alert('Please upload data first to generate a dashboard.')">
-            <h3>📊 View Dashboard</h3>
-            <p>See your spending trends and insights.</p>
-        </div>
-    </div>
-
-    <div id="upload-view" class="view">
-        <header>
-            <h1>Upload.</h1>
-            <p>Select your statement details.</p>
-        </header>
-
-        <div class="card">
-            <label><strong>Select Month</strong></label>
-            <select id="month-select">
-                <option value="November">November</option>
-                <option value="October">October</option>
-                <option value="September">September</option>
-            </select>
-
-            <label><strong>Attach File(s)</strong></label>
-            <input type="file" id="file-input" multiple onchange="handleFileSelect()">
-            
-            <div id="file-list" style="margin-bottom: 20px; font-size: 13px; color: var(--accent);"></div>
-
-            <button class="btn" id="upload-btn" onclick="processUpload()">
-                <span id="btn-text">Analyze Statement</span>
-            </button>
-        </div>
-        
-        <button class="btn btn-outline" onclick="goHome()">Cancel</button>
-    </div>
-
-    <div id="summary-view" class="view">
-        <header>
-            <h1>Summary.</h1>
-            <p>Expenses for <span id="display-month">Month</span></p>
-        </header>
-
-        <div class="card">
-            <div id="category-list">
-                </div>
-            <div class="category-row" style="border-top: 2px solid #eee; margin-top: 10px; padding-top: 15px;">
-                <span class="cat-name"><strong>Total Spent</strong></span>
-                <span class="cat-total" id="grand-total">$0.00</span>
-            </div>
-        </div>
-
-        <div class="card" id="add-more-card">
-            <p>Do you have another statement for this month?</p>
-            <button class="btn btn-secondary" onclick="addMoreFiles()">+ Add Another File</button>
-        </div>
-
-        <button class="btn" onclick="goToDashboard()">Continue to Analytics &rarr;</button>
-    </div>
-
-    <div id="dashboard-view" class="view">
-        <header>
-            <h1>Insights.</h1>
-            <p>Vs. Previous Month</p>
-        </header>
-
-        <div class="card" style="text-align: center;">
-            <h2 id="verdict-title">...</h2>
-            <h1 id="verdict-amount" style="font-size: 36px; margin-bottom: 10px;">...</h1>
-            
-            <div class="bar-container">
-                <div class="bar-label">
-                    <span>Previous</span>
-                    <span>Current</span>
-                </div>
-                <div style="display: flex; height: 20px; border-radius: 10px; overflow: hidden;">
-                    <div id="prev-bar" style="background: #e0e0e0; width: 50%;"></div>
-                    <div id="curr-bar" style="background: var(--primary); width: 50%;"></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="card">
-            <h2>Spending Changes</h2>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                <div>
-                    <p style="font-size: 12px; font-weight: bold; color: var(--danger);">SPENDING MORE 📈</p>
-                    <div id="top-more"></div>
-                </div>
-                <div>
-                    <p style="font-size: 12px; font-weight: bold; color: var(--success);">SPENDING LESS 📉</p>
-                    <div id="top-less"></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="card insight-card">
-            <h2>💡 Action Items</h2>
-            <div id="action-items"></div>
-        </div>
-
-        <button class="btn btn-outline" onclick="goHome()">Start Over</button>
-    </div>
-
-</div>
-
-<script>
-    // --- MOCK DATA LOGIC ---
-    // Since we cannot parse real PDFs client-side easily in this demo,
-    // we define the categories and simulate the parsing result.
-    
-    const categories = [
-        "Dine out", "Coffee", "Grab", "Grocery", "Leisure", "Online Shopping", "Subscriptions"
-    ];
-
-    // Historical data (Previous Month) - Hardcoded for comparison
-    const previousMonthData = {
-        "Dine out": 450,
-        "Coffee": 120,
-        "Grab": 200,
-        "Grocery": 300,
-        "Leisure": 150,
-        "Online Shopping": 250,
-        "Subscriptions": 45,
-    };
-
-    let currentMonthData = {};
-    let currentMonthName = "";
-
-    // --- NAVIGATION ---
-    function switchView(viewId) {
-        document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
-        document.getElementById(viewId).classList.add('active');
-        document.getElementById('app-container').scrollTop = 0;
-    }
-
-    function goHome() { switchView('home-view'); }
-    function goToUpload() { switchView('upload-view'); }
-
-    // --- UPLOAD LOGIC ---
-    function handleFileSelect() {
-        const input = document.getElementById('file-input');
-        const list = document.getElementById('file-list');
-        list.innerHTML = "";
-        if (input.files.length > 0) {
-            for(let i=0; i<input.files.length; i++) {
-                list.innerHTML += `<div>📄 ${input.files[i].name}</div>`;
-            }
-        }
-    }
-
-    function processUpload() {
-        const btn = document.getElementById('upload-btn');
-        const btnText = document.getElementById('btn-text');
-        const monthSelect = document.getElementById('month-select');
-        
-        if(document.getElementById('file-input').files.length === 0) {
-            alert("Please select a file first.");
-            return;
-        }
-
-        currentMonthName = monthSelect.value;
-        
-        // UI Loading State
-        btnText.innerHTML = "";
-        const spinner = document.createElement('div');
-        spinner.className = 'spinner';
-        btn.appendChild(spinner);
-
-        // Simulate Processing Delay (Parsing Logic would go here)
-        setTimeout(() => {
-            generateCurrentData(); // Simulating the parsing of the file
-            renderSummary();
-            switchView('summary-view');
-            
-            // Reset Button
-            btn.removeChild(spinner);
-            btnText.innerHTML = "Analyze Statement";
-        }, 1500);
-    }
-
-    function addMoreFiles() {
-        // In a real app, this would keep the current data and append new data
-        // For this demo, we just send them back to upload screen
-        alert("Upload additional files. We will merge them with existing data.");
-        switchView('upload-view');
-    }
-
-    // --- ANALYSIS LOGIC (Simulated) ---
-    function generateCurrentData() {
-        // This function simulates the result of the keyword categorization
-        // e.g., Finding "Starbucks" -> Coffee
-        // We will randomize it slightly so the user sees different results
-        
-        categories.forEach(cat => {
-            // Randomize based on previous month to create realistic variance (+- 40%)
-            const variance = (Math.random() * 0.8) + 0.6; 
-            currentMonthData[cat] = Math.floor(previousMonthData[cat] * variance);
-        });
-        
-        // Let's force Coffee to be higher for the demo insights
-        currentMonthData["Coffee"] = previousMonthData["Coffee"] * 1.5;
-    }
-
-    function renderSummary() {
-        document.getElementById('display-month').innerText = currentMonthName;
-        const container = document.getElementById('category-list');
-        container.innerHTML = "";
-        
-        let total = 0;
-
-        for (const [category, amount] of Object.entries(currentMonthData)) {
-            total += amount;
-            container.innerHTML += `
-                <div class="category-row">
-                    <span class="cat-name">${category}</span>
-                    <span class="cat-total">$${amount}</span>
-                </div>
-            `;
-        }
-        document.getElementById('grand-total').innerText = "$" + total.toLocaleString();
-    }
-
-    function goToDashboard() {
-        renderAnalytics();
-        switchView('dashboard-view');
-    }
-
-    // --- ANALYTICS LOGIC ---
-    function renderAnalytics() {
-        let prevTotal = Object.values(previousMonthData).reduce((a, b) => a + b, 0);
-        let currTotal = Object.values(currentMonthData).reduce((a, b) => a + b, 0);
-
-        // 1. Verdict (Horizontal Graph)
-        const diff = prevTotal - currTotal;
-        const verdictTitle = document.getElementById('verdict-title');
-        const verdictAmount = document.getElementById('verdict-amount');
-        const prevBar = document.getElementById('prev-bar');
-        const currBar = document.getElementById('curr-bar');
-
-        if (diff > 0) {
-            verdictTitle.innerText = "You Saved";
-            verdictTitle.style.color = "var(--success)";
-            verdictAmount.innerText = "$" + Math.abs(diff).toLocaleString();
-        } else {
-            verdictTitle.innerText = "Spending Increase";
-            verdictTitle.style.color = "var(--danger)";
-            verdictAmount.innerText = "+$" + Math.abs(diff).toLocaleString();
-        }
-
-        // Normalize bars
-        const max = Math.max(prevTotal, currTotal);
-        prevBar.style.width = (prevTotal / max * 100) + "%";
-        currBar.style.width = (currTotal / max * 100) + "%";
-
-        // 2. Top 3 More/Less
-        let changes = [];
-        for (const cat of categories) {
-            changes.push({
-                name: cat,
-                diff: currentMonthData[cat] - previousMonthData[cat],
-                curr: currentMonthData[cat]
-            });
-        }
-
-        // Sort by biggest increase
-        changes.sort((a, b) => b.diff - a.diff);
-
-        const topMoreDiv = document.getElementById('top-more');
-        const topLessDiv = document.getElementById('top-less');
-        topMoreDiv.innerHTML = "";
-        topLessDiv.innerHTML = "";
-
-        // Render Top 3 Increases
-        changes.slice(0, 3).forEach(item => {
-            if(item.diff > 0) {
-                topMoreDiv.innerHTML += `
-                    <div style="margin-bottom:8px; font-size:13px;">
-                        ${item.name} <span class="badge badge-up">+$${Math.floor(item.diff)}</span>
-                    </div>`;
-            }
-        });
-
-        // Render Top 3 Decreases (bottom of the list)
-        changes.filter(i => i.diff < 0).sort((a, b) => a.diff - b.diff).slice(0, 3).forEach(item => {
-             topLessDiv.innerHTML += `
-                <div style="margin-bottom:8px; font-size:13px;">
-                    ${item.name} <span class="badge badge-down">-$${Math.abs(Math.floor(item.diff))}</span>
-                </div>`;
-        });
-
-        // 3. Insights / Action Items
-        const actionsDiv = document.getElementById('action-items');
-        actionsDiv.innerHTML = "";
-
-        const createAction = (text) => {
-            return `<div class="action-item"><span class="check-icon">✓</span><span>${text}</span></div>`;
+        const CATEGORIES = {
+            DINEOUT: { id: 'dineout', label: 'Dine Out', icon: 'fa-utensils', color: 'bg-orange-100 text-orange-600' },
+            COFFEE: { id: 'coffee', label: 'Coffee', icon: 'fa-mug-hot', color: 'bg-brown-100 text-amber-700' },
+            GRAB: { id: 'grab', label: 'Grab/Transport', icon: 'fa-car', color: 'bg-green-100 text-green-600' },
+            GROCERY: { id: 'grocery', label: 'Grocery', icon: 'fa-basket-shopping', color: 'bg-yellow-100 text-yellow-600' },
+            LEISURE: { id: 'leisure', label: 'Leisure', icon: 'fa-ticket', color: 'bg-purple-100 text-purple-600' },
+            ONLINE: { id: 'online', label: 'Online Shopping', icon: 'fa-bag-shopping', color: 'bg-blue-100 text-blue-600' },
+            SUBS: { id: 'subs', label: 'Subscriptions', icon: 'fa-rotate', color: 'bg-red-100 text-red-600' },
         };
 
-        if (changes[0].name === "Coffee" && changes[0].diff > 0) {
-            actionsDiv.innerHTML += createAction("Coffee spending is up. Consider a coffee subscription or brewing at home 2 days a week.");
-        }
-        if (changes[0].name === "Dine out" && changes[0].diff > 0) {
-            actionsDiv.innerHTML += createAction("Dining out spiked. Try setting a strict weekend-only rule for restaurants.");
-        }
-        if (currentMonthData["Subscriptions"] > previousMonthData["Subscriptions"]) {
-            actionsDiv.innerHTML += createAction("Subscription costs rose. Check for forgotten free trials that expired.");
-        }
-        if (diff > 0) {
-            actionsDiv.innerHTML += createAction("Great job saving! Transfer the $" + Math.floor(diff) + " saved to your emergency fund immediately.");
-        } else {
-            actionsDiv.innerHTML += createAction("Total spending increased. Review your largest category (" + changes[0].name + ") and set a limit for next month.");
-        }
-    }
+        const KEYWORDS = {
+            [CATEGORIES.COFFEE.id]: ['Starbucks', 'Coffee Bean', 'Tomoro Coffee', 'Zus Coffee', 'Arabica', 'Tim Hortons'],
+            [CATEGORIES.DINEOUT.id]: ['McDonalds', 'Jollibee', 'Ramen Nagi', 'KFC', 'Din Tai Fung', 'Shake Shack'],
+            [CATEGORIES.GRAB.id]: ['Grab * Ride', 'Grab * Food', 'Uber', 'Angkas'],
+            [CATEGORIES.GROCERY.id]: ['SM Supermarket', 'Puregold', 'Landers', 'S&R', 'Rustans Fresh', '7-Eleven'],
+            [CATEGORIES.LEISURE.id]: ['SM Cinema', 'Ayala Malls', 'Timezone', 'Ticketnet', 'Steam Games'],
+            [CATEGORIES.ONLINE.id]: ['Lazada', 'Shopee', 'Zalora', 'Amazon', 'Shein', 'Tiktok Shop'],
+            [CATEGORIES.SUBS.id]: ['Netflix', 'Spotify', 'Apple Services', 'Google Storage', 'Disney+', 'Youtube Premium']
+        };
 
-</script>
+        // Helper to generate random expense data for a month
+        const generateMockExpenses = (monthOffset = 0) => {
+            const data = {};
+            // Initialize 0
+            Object.keys(CATEGORIES).forEach(key => data[CATEGORIES[key].id] = 0);
+            
+            // Randomly populate
+            const baseAmount = 5000; 
+            
+            Object.keys(CATEGORIES).forEach(key => {
+                const catId = CATEGORIES[key].id;
+                // Add some randomness + trend difference based on offset
+                // Current month (0) vs Previous (-1)
+                let amount = Math.floor(Math.random() * 5000) + 500;
+                
+                // Hardcode some trends for the demo
+                if (catId === 'online' && monthOffset === 0) amount += 4000; // Spent more on online shopping this month
+                if (catId === 'grocery' && monthOffset === 0) amount -= 1000; // Spent less on grocery
+                
+                data[catId] = amount;
+            });
+            return data;
+        };
 
+        // --- Components ---
+
+        const Button = ({ children, onClick, variant = 'primary', className = '' }) => {
+            const baseStyle = "w-full py-4 rounded-2xl font-semibold transition-all duration-200 active:scale-95 flex items-center justify-center gap-2";
+            const variants = {
+                primary: "bg-brand-dark text-white shadow-lg shadow-slate-300",
+                secondary: "bg-white text-slate-700 border border-slate-200 shadow-sm",
+                outline: "border-2 border-dashed border-slate-300 text-slate-400 hover:border-slate-400 hover:text-slate-600"
+            };
+            return (
+                <button onClick={onClick} className={`${baseStyle} ${variants[variant]} ${className}`}>
+                    {children}
+                </button>
+            );
+        };
+
+        const Card = ({ children, className = '' }) => (
+            <div className={`bg-white p-6 rounded-3xl shadow-sm border border-slate-100 ${className}`}>
+                {children}
+            </div>
+        );
+
+        // --- Screens ---
+
+        const HomeScreen = ({ onNavigate }) => (
+            <div className="h-screen flex flex-col justify-between p-8 fade-in relative">
+                <div className="mt-12">
+                    <div className="w-12 h-12 bg-black rounded-full flex items-center justify-center mb-6">
+                        <i className="fa-solid fa-wallet text-white text-xl"></i>
+                    </div>
+                    <h1 className="text-4xl font-bold text-slate-800 mb-2">My Tracker</h1>
+                    <p className="text-slate-500">Minimalist expense insights.</p>
+                </div>
+
+                <div className="space-y-4 mb-8">
+                    <Button onClick={() => onNavigate('upload')}>
+                        <i className="fa-solid fa-cloud-arrow-up"></i> Upload Statement
+                    </Button>
+                    <Button variant="secondary" onClick={() => onNavigate('dashboard')}>
+                        <i className="fa-solid fa-chart-pie"></i> View Dashboard
+                    </Button>
+                </div>
+            </div>
+        );
+
+        const UploadScreen = ({ onProcess, onBack }) => {
+            const [step, setStep] = useState(1); // 1: Month, 2: File, 3: More?
+            const [month, setMonth] = useState('');
+            const [files, setFiles] = useState([]);
+            const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+            const handleFileChange = (e) => {
+                if (e.target.files.length > 0) {
+                    setFiles([...files, ...Array.from(e.target.files)]);
+                    setStep(3); // Ask if more
+                }
+            };
+
+            const handleAnalyze = () => {
+                setIsAnalyzing(true);
+                // Simulate processing delay
+                setTimeout(() => {
+                    setIsAnalyzing(false);
+                    onProcess(month);
+                }, 2000);
+            };
+
+            if (isAnalyzing) {
+                return (
+                    <div className="h-screen flex flex-col items-center justify-center p-8 fade-in text-center">
+                        <i className="fa-solid fa-circle-notch fa-spin text-4xl text-brand-dark mb-4"></i>
+                        <h2 className="text-xl font-bold text-slate-800">Analyzing Statement</h2>
+                        <p className="text-slate-500 mt-2">Categorizing transactions based on merchants...</p>
+                        <div className="mt-8 space-y-2 text-sm text-slate-400">
+                            <p>Found "Starbucks"... <span className="text-green-500">Coffee</span></p>
+                            <p>Found "Lazada"... <span className="text-green-500">Online Shopping</span></p>
+                            <p>Found "Grab"... <span className="text-green-500">Transport</span></p>
+                        </div>
+                    </div>
+                );
+            }
+
+            return (
+                <div className="h-screen flex flex-col p-6 fade-in">
+                    <div className="flex items-center mb-8">
+                        <button onClick={onBack} className="p-2 -ml-2 text-slate-400 hover:text-slate-800">
+                            <i className="fa-solid fa-arrow-left"></i>
+                        </button>
+                        <h2 className="text-xl font-bold ml-2">Upload Statement</h2>
+                    </div>
+
+                    {step === 1 && (
+                        <div className="flex-1 flex flex-col justify-center">
+                            <label className="text-slate-500 font-medium mb-2 block">Select Month</label>
+                            <input 
+                                type="month" 
+                                className="w-full p-4 bg-slate-50 rounded-2xl border-none outline-none font-bold text-lg text-slate-700"
+                                onChange={(e) => {
+                                    setMonth(e.target.value);
+                                    if(e.target.value) setStep(2);
+                                }}
+                            />
+                        </div>
+                    )}
+
+                    {(step === 2 || step === 3) && (
+                        <div className="flex-1 flex flex-col">
+                            <div className="mb-6">
+                                <h3 className="text-lg font-bold text-slate-800 mb-1">
+                                    {month ? new Date(month).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'Selected Month'}
+                                </h3>
+                                <p className="text-slate-400 text-sm">Upload PDF or CSV statements.</p>
+                            </div>
+
+                            <div className="relative mb-6">
+                                <input 
+                                    type="file" 
+                                    multiple
+                                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                    onChange={handleFileChange}
+                                />
+                                <div className="w-full h-40 border-2 border-dashed border-slate-300 rounded-3xl flex flex-col items-center justify-center text-slate-400 bg-slate-50">
+                                    <i className="fa-solid fa-cloud-arrow-up text-3xl mb-3"></i>
+                                    <span className="font-medium">Tap to Upload</span>
+                                </div>
+                            </div>
+
+                            {files.length > 0 && (
+                                <div className="mb-8 space-y-2">
+                                    <p className="text-sm font-bold text-slate-700">Uploaded Files ({files.length})</p>
+                                    {files.map((f, i) => (
+                                        <div key={i} className="flex items-center justify-between bg-white p-3 rounded-xl border border-slate-100 shadow-sm">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center">
+                                                    <i className="fa-solid fa-file-invoice"></i>
+                                                </div>
+                                                <span className="text-sm font-medium text-slate-600 truncate max-w-[150px]">{f.name}</span>
+                                            </div>
+                                            <i className="fa-solid fa-check text-green-500"></i>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+
+                            <div className="mt-auto space-y-3">
+                                {files.length > 0 && (
+                                    <>
+                                        <Button variant="secondary" onClick={() => document.querySelector('input[type="file"]').click()}>
+                                            <i className="fa-solid fa-plus"></i> Add Another File
+                                        </Button>
+                                        <Button onClick={handleAnalyze}>
+                                            Analyze Statements
+                                        </Button>
+                                    </>
+                                )}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            );
+        };
+
+        const CategoryResult = ({ onContinue, currentData }) => {
+            const total = Object.values(currentData).reduce((a, b) => a + b, 0);
+
+            return (
+                <div className="min-h-screen bg-slate-50 p-6 fade-in pb-24">
+                     <div className="flex items-center justify-between mb-8">
+                         <h2 className="text-2xl font-bold text-slate-800">Summary</h2>
+                         <span className="bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded-full">Processed</span>
+                    </div>
+
+                    <Card className="mb-6 flex flex-col items-center py-8">
+                        <p className="text-slate-400 font-medium text-sm uppercase tracking-wider mb-2">Total Spend</p>
+                        <h1 className="text-4xl font-bold text-slate-800">₱{total.toLocaleString()}</h1>
+                    </Card>
+
+                    <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wide mb-4">Categorized Expenses</h3>
+                    
+                    <div className="space-y-3">
+                        {Object.values(CATEGORIES).map((cat) => {
+                            const amount = currentData[cat.id] || 0;
+                            return (
+                                <div key={cat.id} className="flex items-center justify-between bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
+                                    <div className="flex items-center gap-4">
+                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${cat.color}`}>
+                                            <i className={`fa-solid ${cat.icon}`}></i>
+                                        </div>
+                                        <div>
+                                            <p className="font-bold text-slate-700">{cat.label}</p>
+                                            <p className="text-xs text-slate-400">
+                                                {KEYWORDS[cat.id].slice(0,2).join(', ')}...
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <span className="font-bold text-slate-800">₱{amount.toLocaleString()}</span>
+                                </div>
+                            );
+                        })}
+                    </div>
+
+                    <div className="fixed bottom-6 left-6 right-6 max-w-[432px] mx-auto">
+                        <Button onClick={onContinue}>
+                            Go to Dashboard <i className="fa-solid fa-arrow-right"></i>
+                        </Button>
+                    </div>
+                </div>
+            );
+        };
+
+        const Dashboard = ({ currentData, prevData, onBack }) => {
+            // Calculations
+            const currentTotal = Object.values(currentData).reduce((a, b) => a + b, 0);
+            const prevTotal = Object.values(prevData).reduce((a, b) => a + b, 0);
+            const diffTotal = currentTotal - prevTotal;
+            const isSaving = diffTotal < 0;
+
+            // Prepare comparisons for Top 3
+            const comparisons = Object.keys(CATEGORIES).map(key => {
+                const catId = CATEGORIES[key].id;
+                const curr = currentData[catId];
+                const prev = prevData[catId];
+                return {
+                    ...CATEGORIES[key],
+                    curr,
+                    prev,
+                    diff: curr - prev
+                };
+            });
+
+            // Top 3 Spend More (Highest Positive Diff)
+            const spendMore = [...comparisons].sort((a, b) => b.diff - a.diff).filter(i => i.diff > 0).slice(0, 3);
+            
+            // Top 3 Spend Less (Lowest Negative Diff aka Highest Saving)
+            const spendLess = [...comparisons].sort((a, b) => a.diff - b.diff).filter(i => i.diff < 0).slice(0, 3);
+
+            // Insight Logic
+            const maxCategory = comparisons.sort((a,b) => b.curr - a.curr)[0];
+
+            return (
+                <div className="min-h-screen bg-slate-50 p-6 fade-in pb-10">
+                    <div className="flex items-center mb-6">
+                        <button onClick={onBack} className="p-2 -ml-2 text-slate-400 hover:text-slate-800">
+                            <i className="fa-solid fa-house"></i>
+                        </button>
+                        <h2 className="text-xl font-bold ml-2">Dashboard</h2>
+                    </div>
+
+                    {/* Main Comparison Card */}
+                    <Card className="mb-6 relative overflow-hidden">
+                        <div className="relative z-10">
+                            <p className="text-slate-500 text-sm font-medium mb-1">Month over Month</p>
+                            <div className="flex items-baseline gap-2 mb-4">
+                                <h1 className="text-3xl font-bold text-slate-800">
+                                    {isSaving ? 'Saved ' : 'Loss '} 
+                                    <span className={isSaving ? 'text-green-500' : 'text-red-500'}>
+                                        ₱{Math.abs(diffTotal).toLocaleString()}
+                                    </span>
+                                </h1>
+                            </div>
+                            
+                            {/* Horizontal Graph */}
+                            <div className="space-y-4">
+                                <div>
+                                    <div className="flex justify-between text-xs font-semibold text-slate-400 mb-1">
+                                        <span>Last Month</span>
+                                        <span>₱{prevTotal.toLocaleString()}</span>
+                                    </div>
+                                    <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
+                                        <div className="h-full bg-slate-300 rounded-full" style={{width: '100%'}}></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div className="flex justify-between text-xs font-semibold text-slate-400 mb-1">
+                                        <span>This Month</span>
+                                        <span>₱{currentTotal.toLocaleString()}</span>
+                                    </div>
+                                    <div className="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
+                                        {/* Simple relative width calculation for demo visual */}
+                                        <div 
+                                            className={`h-full rounded-full ${isSaving ? 'bg-green-500' : 'bg-red-500'}`} 
+                                            style={{width: `${Math.min((currentTotal / prevTotal) * 100, 100)}%`}}
+                                        ></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </Card>
+
+                    {/* Insights Section */}
+                    <div className="bg-blue-50 border border-blue-100 p-4 rounded-2xl mb-6 flex gap-4 items-start">
+                        <div className="bg-white p-2 rounded-full text-blue-500 mt-1 shadow-sm">
+                            <i className="fa-solid fa-lightbulb"></i>
+                        </div>
+                        <div>
+                            <h4 className="font-bold text-blue-900 text-sm mb-1">Smart Insight</h4>
+                            <p className="text-blue-800 text-xs leading-relaxed">
+                                Your highest spend is <b>{maxCategory.label}</b>. 
+                                {maxCategory.diff > 0 
+                                    ? ` It increased by ₱${maxCategory.diff.toLocaleString()} compared to last month. Consider setting a limit.` 
+                                    : ` Good job! You maintained this category well.`}
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Top 3 Spending More */}
+                    <h3 className="font-bold text-slate-800 mb-3 text-sm">Spending Increased <span className="text-red-500 ml-1">▲</span></h3>
+                    <div className="space-y-3 mb-6">
+                        {spendMore.length === 0 && <p className="text-sm text-slate-400 italic">No spending increases. Great job!</p>}
+                        {spendMore.map(cat => (
+                            <div key={cat.id} className="bg-white p-4 rounded-2xl flex items-center justify-between border-l-4 border-red-400 shadow-sm">
+                                <div className="flex items-center gap-3">
+                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center bg-slate-50 text-slate-500`}>
+                                        <i className={`fa-solid ${cat.icon}`}></i>
+                                    </div>
+                                    <div>
+                                        <p className="font-bold text-slate-700 text-sm">{cat.label}</p>
+                                        <p className="text-xs text-slate-400">Total: ₱{cat.curr.toLocaleString()}</p>
+                                    </div>
+                                </div>
+                                <div className="text-right">
+                                    <p className="font-bold text-red-500 text-sm">+₱{cat.diff.toLocaleString()}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Top 3 Spending Less */}
+                    <h3 className="font-bold text-slate-800 mb-3 text-sm">Spending Decreased <span className="text-green-500 ml-1">▼</span></h3>
+                    <div className="space-y-3 mb-8">
+                        {spendLess.length === 0 && <p className="text-sm text-slate-400 italic">No decreases yet.</p>}
+                        {spendLess.map(cat => (
+                            <div key={cat.id} className="bg-white p-4 rounded-2xl flex items-center justify-between border-l-4 border-green-400 shadow-sm">
+                                <div className="flex items-center gap-3">
+                                    <div className={`w-8 h-8 rounded-lg flex items-center justify-center bg-slate-50 text-slate-500`}>
+                                        <i className={`fa-solid ${cat.icon}`}></i>
+                                    </div>
+                                    <div>
+                                        <p className="font-bold text-slate-700 text-sm">{cat.label}</p>
+                                        <p className="text-xs text-slate-400">Total: ₱{cat.curr.toLocaleString()}</p>
+                                    </div>
+                                </div>
+                                <div className="text-right">
+                                    <p className="font-bold text-green-500 text-sm">-₱{Math.abs(cat.diff).toLocaleString()}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            );
+        };
+
+        // --- Main App Controller ---
+
+        const App = () => {
+            const [view, setView] = useState('home'); // home, upload, summary, dashboard
+            const [currentData, setCurrentData] = useState(null);
+            const [prevData, setPrevData] = useState(null);
+
+            // Initialize mock data for previous month on load
+            useEffect(() => {
+                setPrevData(generateMockExpenses(-1));
+            }, []);
+
+            const handleProcess = (month) => {
+                // Generate current month data (Simulating the parsing result)
+                const newData = generateMockExpenses(0); 
+                setCurrentData(newData);
+                setView('summary');
+            };
+
+            return (
+                <div className="app-container">
+                    {view === 'home' && <HomeScreen onNavigate={setView} />}
+                    
+                    {view === 'upload' && (
+                        <UploadScreen 
+                            onBack={() => setView('home')} 
+                            onProcess={handleProcess} 
+                        />
+                    )}
+
+                    {view === 'summary' && currentData && (
+                        <CategoryResult 
+                            currentData={currentData} 
+                            onContinue={() => setView('dashboard')} 
+                        />
+                    )}
+
+                    {view === 'dashboard' && currentData && prevData && (
+                        <Dashboard 
+                            currentData={currentData} 
+                            prevData={prevData} 
+                            onBack={() => setView('home')} 
+                        />
+                    )}
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
 </body>
 </html>
